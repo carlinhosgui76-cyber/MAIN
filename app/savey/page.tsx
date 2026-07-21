@@ -222,7 +222,7 @@ export default function SaveyPage() {
   }
 
   function burst(x: number, y: number) {
-    const items = []
+    const items: { id: number; x: number; y: number; bx: number; by: number; color: string; size: number; round: boolean }[] = []
     for (let i = 0; i < 16; i++) {
       const ang = Math.random() * Math.PI * 2
       const dist = 40 + Math.random() * 90
@@ -264,7 +264,6 @@ export default function SaveyPage() {
       if (s === '0') s = k
       else if (s.length < 8) s += k
     }
-    // @ts-expect-error union setter
     setter((d: any) => ({ ...d, amtStr: s }))
   }
 
