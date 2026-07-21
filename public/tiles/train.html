@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Train</title>
+<style>
+  :root{
+    --bg:#000;
+    --mint:#6EE7B7;
+    --mint-dim: rgba(110,231,183,0.35);
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+    --text:#F5F5F5;
+    --muted: rgba(255,255,255,0.46);
+    --muted-dim: rgba(255,255,255,0.28);
+    --serif: Georgia, 'Times New Roman', 'Iowan Old Style', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    margin:0;
+    padding:0;
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:none;
+  }
+  body{ min-height:100svh; padding-bottom:40px; }
+  #app{
+    max-width:560px;
+    margin:0 auto;
+    padding:0 18px;
+    padding-top:22px;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:22px;
+    min-height:36px;
+  }
+  .brand{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:26px;
+    color:var(--text);
+  }
+  .back{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:17px;
+    color:var(--muted);
+    background:none;
+    border:none;
+    padding:6px 4px;
+    cursor:pointer;
+  }
+  .back:active{ color:var(--text); }
+  .topbar-title{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:19px;
+    color:var(--text);
+    max-width:55%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .spacer40{ width:36px; }
+
+  .pill{
+    border-radius:999px;
+    border:1px solid var(--line-strong);
+    background:transparent;
+    color:var(--muted);
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:14px;
+    padding:8px 16px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    transition:transform .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .pill:active{ transform:scale(0.96); }
+  .pill.small{ font-size:12px; padding:6px 13px; }
+  .pill-primary{
+    background:var(--mint);
+    border:1px solid var(--mint);
+    color:#03140c;
+    font-weight:600;
+    font-size:16px;
+    padding:13px 24px;
+    width:100%;
+  }
+  .pill-primary:active{ transform:scale(0.98); }
+
+  .card{
+    background:#050505;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:12px;
+  }
+  .card-tap{ cursor:pointer; }
+  .card-tap:active{ background:#0a0a0a; }
+
+  .empty{ margin-top:16vh; text-align:center; padding:0 6px; }
+  .empty p{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:24px;
+    line-height:1.35;
+    color:var(--text);
+    margin:0 0 24px;
+  }
+
+  .ex-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .ex-name{ font-family:var(--serif); font-style:italic; font-size:22px; color:var(--text); margin:0 0 4px; }
+  .ex-meta{ font-size:11px; color:var(--muted-dim); letter-spacing:0.02em; }
+  .ex-best{ text-align:right; flex-shrink:0; }
+  .ex-best .label{ font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted-dim); margin-bottom:4px; }
+  .ex-best .val{ font-weight:800; font-size:20px; color:var(--mint); font-variant-numeric:tabular-nums; line-height:1; }
+  .ex-best .val.none{ color:var(--muted-dim); font-weight:600; font-size:14px; }
+  .ex-best .unit{ font-size:12px; font-weight:500; color:var(--muted); }
+  .ex-actions{ display:flex; gap:8px; margin-top:14px; }
+
+  .fab-row{ display:flex; justify-content:center; margin:20px 0 8px; }
+  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted-dim); margin:20px 2px 10px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted-dim); margin-bottom:7px; }
+  input[type=text], input[type=number]{
+    width:100%;
+    background:#0a0a0a;
+    border:1px solid var(--line-strong);
+    border-radius:14px;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:19px;
+    font-weight:700;
+    padding:13px 15px;
+    outline:none;
+  }
+  input[type=text]{ font-weight:500; font-size:17px; }
+  input:focus{ border-color:rgba(110,231,183,0.5); }
+  .suggest-wrap{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+
+  .log-grid{ display:flex; gap:10px; margin-bottom:14px; }
+  .log-grid .field{ flex:1; margin-bottom:0; }
+
+  .set-row{ display:flex; align-items:baseline; gap:12px; padding:12px 2px; border-bottom:1px solid var(--line); }
+  .set-row:last-child{ border-bottom:none; }
+  .set-num{ font-family:var(--serif); font-style:italic; font-size:15px; color:var(--muted-dim); width:24px; flex-shrink:0; }
+  .set-vals{ flex:1; font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; color:var(--text); display:flex; align-items:baseline; gap:6px; }
+  .set-vals .x{ color:var(--muted-dim); font-weight:500; font-size:13px; }
+  .set-row.pr .set-vals{ color:var(--mint); }
+  .set-row.pr .set-num{ color:var(--mint-dim); }
+  .set-date{ font-size:11px; color:var(--muted-dim); flex-shrink:0; text-align:right; }
+  .pr-tag{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--mint); margin-left:6px; }
+  @keyframes flashPulse{ 0%{ background:rgba(110,231,183,0.22); } 100%{ background:transparent; } }
+  .set-row.flash{ animation:flashPulse 1.4s ease-out; border-radius:12px; }
+
+  .day-group{ margin-bottom:2px; }
+  .day-header{ font-size:11px; color:var(--muted); padding:12px 2px 4px; }
+
+  .chart-stats{ display:flex; gap:12px; margin-top:12px; }
+  .chart-stat{ flex:1; }
+  .chart-stat .label{ font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted-dim); margin-bottom:6px; }
+  .chart-stat .val{ font-weight:800; font-size:24px; color:var(--mint); font-variant-numeric:tabular-nums; }
+  .chart-stat .val .unit{ font-size:13px; color:var(--muted); font-weight:600; }
+  .chart-wrap{ position:relative; width:100%; touch-action:pan-y; }
+  canvas{ display:block; width:100%; }
+  .chart-tooltip{
+    position:absolute; top:0; transform:translate(-50%,-100%);
+    background:#111; border:1px solid var(--line-strong); border-radius:10px;
+    padding:8px 12px; pointer-events:none; white-space:nowrap; font-size:11px; color:var(--muted);
+  }
+  .chart-tooltip .tv{ font-weight:800; font-size:15px; color:var(--mint); font-variant-numeric:tabular-nums; display:block; }
+  .chart-empty{ text-align:center; padding:36px 10px; color:var(--muted); font-family:var(--serif); font-style:italic; font-size:17px; }
+
+  ::selection{ background:var(--mint-dim); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ Persistence (host bridge, no localStorage) ============ */
+  var RECORDS = [];   // flat array of {type:'exercise'|'set', ...}
+  var DATA = { exercises: [], sets: [] };
+  var saveQueued = false, saveInFlight = false;
+
+  function fromRecords(records){
+    var d = { exercises: [], sets: [] };
+    (records || []).forEach(function(r){
+      if(r && r.type === "exercise") d.exercises.push(r);
+      else if(r && r.type === "set") d.sets.push(r);
+    });
+    return d;
+  }
+  function toRecords(d){
+    return d.exercises.concat(d.sets);
+  }
+  function persist(){
+    RECORDS = toRecords(DATA);
+    if(saveInFlight){ saveQueued = true; return; }
+    saveInFlight = true;
+    window.Vitality.save(RECORDS).catch(function(e){ console.error("save failed", e); })
+      .then(function(){
+        saveInFlight = false;
+        if(saveQueued){ saveQueued = false; persist(); }
+      });
+  }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  /* ============ State ============ */
+  var state = { screen:"loading", exerciseId:null, focus:null };
+
+  /* ============ Helpers ============ */
+  function toRoman(num){
+    var map = [[1000,"m"],[900,"cm"],[500,"d"],[400,"cd"],[100,"c"],[90,"xc"],
+      [50,"l"],[40,"xl"],[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]];
+    var res = "";
+    for(var i=0;i<map.length;i++){ while(num >= map[i][0]){ res += map[i][1]; num -= map[i][0]; } }
+    return res || "i";
+  }
+  function dayKey(ts){ var d = new Date(ts); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+  function fmtDateShort(ts){ var d = new Date(ts); return d.toLocaleDateString(undefined, { month:"short", day:"numeric" }); }
+  function fmtDateFull(ts){ var d = new Date(ts); return d.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric", year:"numeric" }); }
+  function fmtTime(ts){ var d = new Date(ts); return d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" }); }
+  function fmtWeight(w){ return (Math.round(w*10)/10).toString(); }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function getExercise(id){
+    for(var i=0;i<DATA.exercises.length;i++) if(DATA.exercises[i].id===id) return DATA.exercises[i];
+    return null;
+  }
+  function getSetsFor(exerciseId){
+    return DATA.sets.filter(function(s){ return s.exerciseId===exerciseId; })
+      .sort(function(a,b){ return a.timestamp-b.timestamp; });
+  }
+  function isBetter(a,b){
+    if(!b) return true;
+    if(a.weight !== b.weight) return a.weight > b.weight;
+    return a.reps > b.reps;
+  }
+  function annotateSets(sets){
+    var best = null;
+    return sets.map(function(s){
+      var pr = isBetter(s, best);
+      var out = { set:s, isPR: pr, bestBefore: best };
+      if(pr) best = s;
+      return out;
+    });
+  }
+  function currentBest(exerciseId){
+    var sets = getSetsFor(exerciseId);
+    var best = null;
+    sets.forEach(function(s){ if(isBetter(s,best)) best = s; });
+    return best;
+  }
+  function lastSetIsPR(exerciseId){
+    var sets = getSetsFor(exerciseId);
+    if(!sets.length) return false;
+    var ann = annotateSets(sets);
+    return ann[ann.length-1].isPR;
+  }
+  function sessionsTopSets(exerciseId){
+    var sets = getSetsFor(exerciseId);
+    var byDay = {}, order = [];
+    sets.forEach(function(s){
+      var k = dayKey(s.timestamp);
+      if(!byDay[k]){ byDay[k] = s; order.push(k); }
+      else if(isBetter(s, byDay[k])) byDay[k] = s;
+    });
+    return order.map(function(k){ return byDay[k]; });
+  }
+  function currentStreak(exerciseId){
+    var sessions = sessionsTopSets(exerciseId);
+    var streak = 0;
+    for(var i=sessions.length-1;i>0;i--){
+      if(isBetter(sessions[i], sessions[i-1])) streak++; else break;
+    }
+    return streak;
+  }
+
+  var SUGGESTED = ["Bench Press","Squat","Deadlift","Overhead Press","Pull-Up","Barbell Row","Bicep Curl","Lat Pulldown"];
+
+  /* ============ Render root ============ */
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="loading") return renderLoading();
+    if(state.screen==="home") return renderHome();
+    if(state.screen==="add") return renderAdd();
+    if(state.screen==="exercise") return renderExercise();
+    if(state.screen==="chart") return renderChart();
+  }
+  function el(html){
+    var t = document.createElement("template");
+    t.innerHTML = html.trim();
+    return t.content.firstElementChild;
+  }
+
+  function renderLoading(){
+    app.innerHTML = "";
+    app.appendChild(el('<div class="topbar"><div class="brand">Train</div><div class="spacer40"></div></div>'));
+  }
+
+  /* ============ Home ============ */
+  function renderHome(){
+    app.innerHTML = "";
+    app.appendChild(el('<div class="topbar"><div class="brand">Train</div><div class="spacer40"></div></div>'));
+
+    if(DATA.exercises.length===0){
+      var empty = el('<div class="empty"><p>Every rep starts<br>somewhere.</p></div>');
+      app.appendChild(empty);
+      var row = el('<div class="fab-row"></div>');
+      var btn = document.createElement("button");
+      btn.className = "pill pill-primary";
+      btn.style.maxWidth = "260px";
+      btn.textContent = "add an exercise";
+      btn.onclick = function(){ state.screen="add"; render(); };
+      row.appendChild(btn);
+      app.appendChild(row);
+      return;
+    }
+
+    DATA.exercises.slice().sort(function(a,b){ return b.createdAt-a.createdAt; }).forEach(function(ex){
+      var best = currentBest(ex.id);
+      var sets = getSetsFor(ex.id);
+      var card = el(
+        '<div class="card card-tap">'+
+          '<div class="ex-row">'+
+            '<div>'+
+              '<div class="ex-name">'+escapeHtml(ex.name)+'</div>'+
+              '<div class="ex-meta">'+sets.length+(sets.length===1?" set logged":" sets logged")+'</div>'+
+            '</div>'+
+            '<div class="ex-best">'+
+              '<div class="label">best</div>'+
+              (best
+                ? '<div class="val">'+fmtWeight(best.weight)+' <span class="unit">× '+best.reps+'</span></div>'
+                : '<div class="val none">—</div>')+
+            '</div>'+
+          '</div>'+
+          '<div class="ex-actions">'+
+            '<button class="pill small" data-act="log">log</button>'+
+            '<button class="pill small" data-act="chart">chart</button>'+
+            '<button class="pill small" data-act="history">history</button>'+
+          '</div>'+
+        '</div>'
+      );
+      card.querySelector('[data-act="log"]').onclick = function(e){ e.stopPropagation(); state.exerciseId=ex.id; state.screen="exercise"; state.focus="log"; render(); };
+      card.querySelector('[data-act="chart"]').onclick = function(e){ e.stopPropagation(); state.exerciseId=ex.id; state.screen="chart"; render(); };
+      card.querySelector('[data-act="history"]').onclick = function(e){ e.stopPropagation(); state.exerciseId=ex.id; state.screen="exercise"; state.focus="history"; render(); };
+      card.onclick = function(){ state.exerciseId=ex.id; state.screen="exercise"; state.focus=null; render(); };
+      app.appendChild(card);
+    });
+
+    var row2 = el('<div class="fab-row"></div>');
+    var btn2 = document.createElement("button");
+    btn2.className = "pill";
+    btn2.textContent = "add exercise";
+    btn2.onclick = function(){ state.screen="add"; render(); };
+    row2.appendChild(btn2);
+    app.appendChild(row2);
+  }
+
+  /* ============ Add exercise ============ */
+  function renderAdd(){
+    app.innerHTML = "";
+    var top = el(
+      '<div class="topbar">'+
+        '<button class="back">‹ back</button>'+
+        '<div class="topbar-title">new exercise</div>'+
+        '<div class="spacer40"></div>'+
+      '</div>'
+    );
+    top.querySelector(".back").onclick = function(){ state.screen="home"; render(); };
+    app.appendChild(top);
+
+    var existingNames = DATA.exercises.map(function(e){ return e.name.toLowerCase(); });
+    var suggestions = SUGGESTED.filter(function(s){ return existingNames.indexOf(s.toLowerCase())===-1; });
+
+    var card = el(
+      '<div class="card">'+
+        '<div class="field"><label>exercise name</label>'+
+          '<input type="text" id="new-ex-name" placeholder="e.g. Incline Dumbbell Press" autocomplete="off"></div>'+
+        '<button class="pill pill-primary" id="create-ex-btn">add exercise</button>'+
+        (suggestions.length ? ('<div class="section-label">or pick a common one</div><div class="suggest-wrap" id="suggest-wrap"></div>') : '')+
+      '</div>'
+    );
+    app.appendChild(card);
+
+    var input = card.querySelector("#new-ex-name");
+    var createBtn = card.querySelector("#create-ex-btn");
+    createBtn.onclick = function(){
+      var name = input.value.trim();
+      if(!name){ input.focus(); return; }
+      addExercise(name);
+    };
+    input.addEventListener("keydown", function(e){ if(e.key==="Enter") createBtn.click(); });
+    setTimeout(function(){ input.focus(); }, 50);
+
+    if(suggestions.length){
+      var wrap = card.querySelector("#suggest-wrap");
+      suggestions.forEach(function(name){
+        var b = document.createElement("button");
+        b.className = "pill small";
+        b.textContent = name.toLowerCase();
+        b.onclick = function(){ addExercise(name); };
+        wrap.appendChild(b);
+      });
+    }
+
+    function addExercise(name){
+      var ex = { type:"exercise", id: uid(), name: name, createdAt: Date.now() };
+      DATA.exercises.push(ex);
+      persist();
+      state.exerciseId = ex.id;
+      state.screen = "exercise";
+      state.focus = "log";
+      render();
+    }
+  }
+
+  /* ============ Exercise detail (log + history) ============ */
+  function renderExercise(){
+    var ex = getExercise(state.exerciseId);
+    if(!ex){ state.screen="home"; return render(); }
+    app.innerHTML = "";
+
+    var top = el(
+      '<div class="topbar">'+
+        '<button class="back">‹ back</button>'+
+        '<div class="topbar-title">'+escapeHtml(ex.name)+'</div>'+
+        '<button class="back" id="chart-link">chart</button>'+
+      '</div>'
+    );
+    top.querySelector(".back").onclick = function(){ state.screen="home"; render(); };
+    top.querySelector("#chart-link").onclick = function(){ state.screen="chart"; render(); };
+    app.appendChild(top);
+
+    var best = currentBest(ex.id);
+    var streak = currentStreak(ex.id);
+
+    var statsCard = el(
+      '<div class="card">'+
+        '<div class="chart-stats">'+
+          '<div class="chart-stat"><div class="label">best ever</div><div class="val">'+
+            (best ? fmtWeight(best.weight)+' <span class="unit">× '+best.reps+'</span>' : '—')+'</div></div>'+
+          '<div class="chart-stat"><div class="label">streak</div><div class="val">'+streak+
+            ' <span class="unit">'+(streak===1?"session":"sessions")+'</span></div></div>'+
+        '</div>'+
+      '</div>'
+    );
+    app.appendChild(statsCard);
+
+    var logCard = el(
+      '<div class="card" id="log-card">'+
+        '<div class="log-grid">'+
+          '<div class="field"><label>weight</label><input type="number" inputmode="decimal" id="in-weight" placeholder="0" step="0.5" min="0"></div>'+
+          '<div class="field"><label>reps</label><input type="number" inputmode="numeric" id="in-reps" placeholder="0" step="1" min="0"></div>'+
+        '</div>'+
+        '<button class="pill pill-primary" id="log-btn">log set</button>'+
+      '</div>'
+    );
+    app.appendChild(logCard);
+
+    var wIn = logCard.querySelector("#in-weight");
+    var rIn = logCard.querySelector("#in-reps");
+    var logBtn = logCard.querySelector("#log-btn");
+
+    function trySubmit(){
+      var w = parseFloat(wIn.value);
+      var r = parseInt(rIn.value, 10);
+      if(isNaN(w) || isNaN(r) || w<0 || r<=0) return;
+      var newSet = { type:"set", id: uid(), exerciseId: ex.id, weight: w, reps: r, timestamp: Date.now() };
+      DATA.sets.push(newSet);
+      persist();
+      wIn.value = ""; rIn.value = "";
+      renderHistoryInto(historyContainer, ex.id, newSet.id);
+      var newBest = currentBest(ex.id);
+      var newStreak = currentStreak(ex.id);
+      statsCard.querySelector(".chart-stats").innerHTML =
+        '<div class="chart-stat"><div class="label">best ever</div><div class="val">'+
+          (newBest ? fmtWeight(newBest.weight)+' <span class="unit">× '+newBest.reps+'</span>' : '—')+
+        '</div></div>'+
+        '<div class="chart-stat"><div class="label">streak</div><div class="val">'+newStreak+
+          ' <span class="unit">'+(newStreak===1?"session":"sessions")+'</span></div></div>';
+      wIn.focus();
+    }
+    logBtn.onclick = trySubmit;
+    rIn.addEventListener("keydown", function(e){ if(e.key==="Enter") trySubmit(); });
+    wIn.addEventListener("keydown", function(e){ if(e.key==="Enter") rIn.focus(); });
+
+    app.appendChild(el('<div class="section-label">history</div>'));
+    var historyContainer = el('<div class="card" id="history-card"></div>');
+    app.appendChild(historyContainer);
+    renderHistoryInto(historyContainer, ex.id, null);
+
+    if(state.focus==="log"){
+      setTimeout(function(){ wIn.focus(); }, 50);
+    } else if(state.focus==="history"){
+      setTimeout(function(){ historyContainer.scrollIntoView({behavior:"smooth", block:"start"}); }, 50);
+    }
+  }
+
+  function renderHistoryInto(container, exerciseId, flashSetId){
+    var sets = getSetsFor(exerciseId);
+    if(sets.length===0){
+      container.innerHTML = '<div class="chart-empty">no sets yet — log your first above</div>';
+      return;
+    }
+    var ann = annotateSets(sets);
+    var displayOrder = ann.slice().reverse();
+    var groups = [], lastKey = null;
+    displayOrder.forEach(function(a){
+      var k = dayKey(a.set.timestamp);
+      if(k!==lastKey){ groups.push({ key:k, items:[] }); lastKey = k; }
+      groups[groups.length-1].items.push(a);
+    });
+
+    var indexMap = {};
+    ann.forEach(function(a, i){ indexMap[a.set.id] = i+1; });
+
+    container.innerHTML = "";
+    groups.forEach(function(g){
+      var dayEl = el('<div class="day-group"></div>');
+      dayEl.appendChild(el('<div class="day-header">'+fmtDateFull(g.items[0].set.timestamp)+'</div>'));
+      g.items.forEach(function(a){
+        var s = a.set;
+        var row = el(
+          '<div class="set-row'+(a.isPR?" pr":"")+'">'+
+            '<div class="set-num">'+toRoman(indexMap[s.id])+'</div>'+
+            '<div class="set-vals">'+fmtWeight(s.weight)+'<span class="x">×</span>'+s.reps+
+              (a.isPR ? '<span class="pr-tag">best</span>' : '')+
+            '</div>'+
+            '<div class="set-date">'+fmtTime(s.timestamp)+'</div>'+
+          '</div>'
+        );
+        if(s.id===flashSetId) row.classList.add("flash");
+        dayEl.appendChild(row);
+      });
+      container.appendChild(dayEl);
+    });
+
+    if(flashSetId){
+      var flashed = container.querySelector(".flash");
+      if(flashed) flashed.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+  }
+
+  /* ============ Chart ============ */
+  function renderChart(){
+    var ex = getExercise(state.exerciseId);
+    if(!ex){ state.screen="home"; return render(); }
+    app.innerHTML = "";
+
+    var top = el(
+      '<div class="topbar">'+
+        '<button class="back">‹ back</button>'+
+        '<div class="topbar-title">'+escapeHtml(ex.name)+'</div>'+
+        '<div class="spacer40"></div>'+
+      '</div>'
+    );
+    top.querySelector(".back").onclick = function(){ state.screen="exercise"; render(); };
+    app.appendChild(top);
+
+    var sessions = sessionsTopSets(ex.id);
+    if(sessions.length===0){
+      app.appendChild(el('<div class="card"><div class="chart-empty">log a set to start your chart</div></div>'));
+      return;
+    }
+
+    var card = el('<div class="card"></div>');
+    var chartWrap = el('<div class="chart-wrap"></div>');
+    var canvas = document.createElement("canvas");
+    chartWrap.appendChild(canvas);
+    var tooltip = el('<div class="chart-tooltip" style="display:none"></div>');
+    chartWrap.appendChild(tooltip);
+    card.appendChild(chartWrap);
+
+    var best = currentBest(ex.id);
+    var streak = currentStreak(ex.id);
+    var statsRow = el(
+      '<div class="chart-stats">'+
+        '<div class="chart-stat"><div class="label">best ever</div><div class="val">'+
+          fmtWeight(best.weight)+' <span class="unit">× '+best.reps+'</span></div></div>'+
+        '<div class="chart-stat"><div class="label">streak</div><div class="val">'+streak+
+          ' <span class="unit">'+(streak===1?"session":"sessions")+'</span></div></div>'+
+      '</div>'
+    );
+    card.appendChild(statsRow);
+    app.appendChild(card);
+
+    if(sessions.length===1){
+      var note = el('<div class="chart-empty" style="padding:10px 0 0;font-size:14px;">one session logged — keep going to see the line</div>');
+      card.insertBefore(note, statsRow);
+    }
+
+    initScrubChart(canvas, tooltip, chartWrap, sessions);
+  }
+
+  function initScrubChart(canvas, tooltip, wrap, sessions){
+    var ctx = canvas.getContext("2d");
+    var selectedIndex = sessions.length - 1;
+    var PAD_L = 8, PAD_R = 8, PAD_T = 20, PAD_B = 28;
+    var height = 200;
+    var dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    var weights = sessions.map(function(s){ return s.weight; });
+    var minW = Math.min.apply(null, weights);
+    var maxW = Math.max.apply(null, weights);
+    if(minW===maxW){ minW -= 1; maxW += 1; }
+    var rangePad = (maxW-minW) * 0.18;
+    minW -= rangePad; maxW += rangePad;
+
+    function xForIndex(i, width){
+      if(sessions.length===1) return width/2;
+      return PAD_L + (i/(sessions.length-1)) * (width - PAD_L - PAD_R);
+    }
+    function yForWeight(w, h){
+      var t = (w - minW) / (maxW - minW);
+      return PAD_T + (1-t) * (h - PAD_T - PAD_B);
+    }
+
+    function draw(){
+      var width = wrap.clientWidth;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.height = height+"px";
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,width,height);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      [0.25,0.5,0.75].forEach(function(t){
+        var y = PAD_T + t*(height-PAD_T-PAD_B);
+        ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(width-PAD_R, y); ctx.stroke();
+      });
+
+      ctx.beginPath();
+      sessions.forEach(function(s, i){
+        var x = xForIndex(i, width), y = yForWeight(s.weight, height);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.strokeStyle = "#6EE7B7";
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      var lastX = xForIndex(sessions.length-1, width);
+      var firstX = xForIndex(0, width);
+      ctx.lineTo(lastX, height-PAD_B);
+      ctx.lineTo(firstX, height-PAD_B);
+      ctx.closePath();
+      var grad = ctx.createLinearGradient(0,PAD_T,0,height-PAD_B);
+      grad.addColorStop(0, "rgba(110,231,183,0.16)");
+      grad.addColorStop(1, "rgba(110,231,183,0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      sessions.forEach(function(s, i){
+        var x = xForIndex(i, width), y = yForWeight(s.weight, height);
+        var isSel = i===selectedIndex;
+        ctx.beginPath();
+        ctx.arc(x, y, isSel?5:2.5, 0, Math.PI*2);
+        ctx.fillStyle = isSel ? "#6EE7B7" : "rgba(110,231,183,0.55)";
+        ctx.fill();
+        if(isSel){
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI*2);
+          ctx.strokeStyle = "rgba(110,231,183,0.35)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      });
+
+      var selX = xForIndex(selectedIndex, width);
+      ctx.beginPath();
+      ctx.setLineDash([3,4]);
+      ctx.moveTo(selX, PAD_T);
+      ctx.lineTo(selX, height-PAD_B);
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      ctx.font = "11px " + getComputedStyle(document.body).fontFamily;
+      ctx.textBaseline = "alphabetic";
+      ctx.textAlign = "left";
+      ctx.fillText(fmtDateShort(sessions[0].timestamp), PAD_L, height-8);
+      ctx.textAlign = "right";
+      ctx.fillText(fmtDateShort(sessions[sessions.length-1].timestamp), width-PAD_R, height-8);
+
+      updateTooltip(width);
+    }
+
+    function updateTooltip(width){
+      var s = sessions[selectedIndex];
+      var x = xForIndex(selectedIndex, width);
+      tooltip.style.display = "block";
+      tooltip.style.left = Math.min(Math.max(x, 50), width-50) + "px";
+      tooltip.style.top = "6px";
+      tooltip.innerHTML = '<span class="tv">'+fmtWeight(s.weight)+' × '+s.reps+'</span>'+fmtDateFull(s.timestamp);
+    }
+
+    function indexFromX(clientX, width){
+      var rect = canvas.getBoundingClientRect();
+      var x = clientX - rect.left;
+      if(sessions.length===1) return 0;
+      var t = (x - PAD_L) / (width - PAD_L - PAD_R);
+      var i = Math.round(t * (sessions.length-1));
+      return Math.max(0, Math.min(sessions.length-1, i));
+    }
+
+    var dragging = false;
+    function onDown(e){ dragging = true; onMove(e); }
+    function onMove(e){
+      if(!dragging) return;
+      var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      var width = wrap.clientWidth;
+      var i = indexFromX(clientX, width);
+      if(i!==selectedIndex){ selectedIndex = i; draw(); } else { updateTooltip(width); }
+    }
+    function onUp(){ dragging = false; }
+
+    canvas.addEventListener("pointerdown", function(e){ canvas.setPointerCapture(e.pointerId); onDown(e); });
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onUp);
+
+    window.addEventListener("resize", draw);
+    draw();
+  }
+
+  /* ============ Init ============ */
+  async function init(){
+    try{
+      var loaded = await window.Vitality.load();
+      DATA = fromRecords(Array.isArray(loaded) ? loaded : []);
+    }catch(e){
+      console.error("load failed", e);
+      DATA = { exercises: [], sets: [] };
+    }
+    state.screen = "home";
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
